@@ -7,6 +7,9 @@
  */
 public class Main {
     public static void main(String[] args) {
+        if (args.length < 1) {
+            System.out.println("Missing command line argument!");
+        }
         for (String codice : args) {
             if (!codice.startsWith("PROD-")) {
                 System.out.println("Codice non valido: " + codice);

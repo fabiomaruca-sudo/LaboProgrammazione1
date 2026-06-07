@@ -1,0 +1,165 @@
+/'
+mi sono fatto aiutare dall'AI per questo UML
+'/
+
+@startuml platformer
+
+skinparam classAttributeIconSize 0
+skinparam classFontSize 13
+skinparam classHeaderBackgroundColor #E8E4FF
+skinparam classBorderColor #7F77DD
+skinparam arrowColor #534AB7
+skinparam backgroundColor white
+
+/'
+Entity è la classe astratta alla base di tutto — gestisce posizione, dimensioni, texture e hitbox. Da essa ereditano Character, Block e UI.
+'/
+
+abstract class Entity {
+  - x : float
+  - y : float
+  - width : float
+  - height : float
+  - corpse : Texture
+  - hitboxes : Rectangle
+  - {static} total : ArrayList<Entity>
+
+  + setCorpse(path : String) : void
+  + setCorpse(texture : Texture) : void
+  + setHitboxes() : void
+  + setHitboxes(x, y, w, h : float) : void
+  + draw(batch : SpriteBatch) : void
+  + dispose() : void
+  + showHitbox(sr : ShapeRenderer, color : Color) : void
+  + {static} getTotal() : ArrayList<Entity>
+}
+
+class Character {
+  - movementForce : float
+  - jumpForce : float
+  - velX : float
+  - velY : float
+  - jumpAmount : int
+  - MAXJUMPS : int
+
+  + Move(vel : float) : void
+  + jump() : void
+  + handleHitboxes(map : Map) : void
+}
+
+
+/'
+Block ha due sottoclassi: Rope (interazione con E, aggancia il personaggio) e KillBlock (respawna il personaggio al tocco, overriding onTouch).
+serve per generare blocchi in base al txt della mappa
+'/
+
+class Block {
+  + onTouch(character : Character, map : Map) : void
+  + inRange(character : Character, blockDistance : int) : boolean
+  + drawTexture(batch : SpriteBatch) : void
+}
+
+/'
+Tipo di blocco, serve per teletrasportarsi su di esso premendo E, bisogna essere in un certo range per usare questa funzione
+'/
+
+class Rope {
+  + interaction(c : Character) : void
+  + inRange(character : Character, range : int) : boolean
+}
+
+/'
+Tipo di blocco, se ci vai sopra torni all'inizio del livello
+'/
+
+class KillBlock {
+  + onTouch(character : Character, map : Map) : void
+}
+
+
+/'
+Classe usata per gestire design del menu, principalmente usata per i bottoni
+'/
+
+class UI {
+  - text : String
+  - color : Color
+  - shape : ShapeRenderer
+
+  + drawRect(batch : SpriteBatch, font : BitmapFont, fontSize : float) : void
+  + drawText(batch : SpriteBatch, font : BitmapFont, fontSize : float) : void
+  + centerText(batch : SpriteBatch, font : BitmapFont, fontSize : float) : void
+  + isClicked() : boolean
+  + dispose() : void
+}
+
+
+/'
+Map gestisce tutte le mappe create, con logica e posizione dei blocchi
+'/
+
+class Map {
+  - {static} side : float
+  - name : String
+  - map : ArrayList<ArrayList<Integer>>
+  - textures : ArrayList<Texture>
+  - blocks : ArrayList<Block>
+  - type : ArrayList<String>
+  - {static} spawnX : float
+  - {static} spawnY : float
+  - GRAVITY : float
+  - music : Music
+
+  + txtToMap() : void
+  + setSkins(parts : String[]) : void
+  + setBlocksZones(parts : String[]) : void
+  + draw(batch : SpriteBatch) : void
+  + dispose() : void
+  + getType(type : String) : String
+}
+
+class Main {
+  - batch : SpriteBatch
+  - font : BitmapFont
+  - {static} displayMode : DisplayMode
+  - character : Character
+  - map : Map
+  - inGame : boolean
+  - {static} scale : float
+  - shapeRenderer : ShapeRenderer
+  - startButton : UI
+  - settingsButton : UI
+  - exitButton : UI
+  - levelSelector : UI
+  - bgMusic : Music
+  - levelsUI : ArrayList<UI>
+  - selectedLevel : UI
+
+  + create() : void
+  + render() : void
+  + dispose() : void
+  + startMap(name : String) : void
+  + DrawMenu() : void
+  + DrawMap() : void
+  + getLevels() : void
+  + UIlevels() : void
+  + resizeWidth(scale : float) : float
+  + resizeHeight(scale : float) : float
+}
+
+' Ereditarietà
+Entity <|-- Character
+Entity <|-- Block
+Entity <|-- UI
+Block  <|-- Rope
+Block  <|-- KillBlock
+
+' Composizione: Map contiene Block
+Map "1" *-- "many" Block : contains
+
+' Dipendenze: Main usa Character, Map, UI
+Main --> Character : uses
+Main --> Map      : uses
+Main --> UI       : uses
+
+@enduml
